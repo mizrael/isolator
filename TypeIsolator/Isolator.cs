@@ -7,11 +7,11 @@ namespace TypeIsolator
     public class Isolator : IDisposable
     {
         private readonly AppDomain _appDomain;
-        private readonly FooIsolatorRunner _runner;
+        private readonly IsolatorRunner _runner;
 
         public Isolator(Type type, string methodName)
         {
-            var runnerType = typeof(FooIsolatorRunner);
+            var runnerType = typeof(IsolatorRunner);
             var runnerAssemblyPath = runnerType.Assembly.Location;
             var runnerAssemblyContents = File.ReadAllBytes(runnerAssemblyPath);
             var runnerAssemblyFolder = Path.GetDirectoryName(runnerAssemblyPath);
@@ -22,7 +22,7 @@ namespace TypeIsolator
             });
 
             var cTorArgs = new object[] { runnerAssemblyContents, type.FullName, methodName };
-            _runner = (FooIsolatorRunner)_appDomain.CreateInstanceFromAndUnwrap(runnerAssemblyPath, runnerType.FullName, false
+            _runner = (IsolatorRunner)_appDomain.CreateInstanceFromAndUnwrap(runnerAssemblyPath, runnerType.FullName, false
                 , BindingFlags.CreateInstance | BindingFlags.Public | BindingFlags.Instance
                 , null, cTorArgs, null, null);
         }
@@ -39,12 +39,12 @@ namespace TypeIsolator
         }
     }
 
-    internal class FooIsolatorRunner : MarshalByRefObject
+    internal class IsolatorRunner : MarshalByRefObject
     {
         private readonly object _instance;
         private readonly MethodInfo _method;
 
-        public FooIsolatorRunner(byte[] assemblyContents, string typeName, string methodName)
+        public IsolatorRunner(byte[] assemblyContents, string typeName, string methodName)
         {
             var assembly = AppDomain.CurrentDomain.Load(assemblyContents);
             var type = assembly.GetType(typeName);
